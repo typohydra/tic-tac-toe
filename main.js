@@ -1,13 +1,15 @@
 const gameBoard = ( () => {
+    let player1Score = 0;
+    let player2Score = 0;
     let gameBoardArr = [
-    '', '', '', 
-    '', '', '', 
-    '', '', ''
+        '', '', '', 
+        '', '', '', 
+        '', '', ''
     ];
 
     const getGameBoard = () => gameBoardArr;
 
-    let updateGameBoard = (position, sign) => {
+    const updateGameBoard = (position, sign) => {
         gameBoardArr[position] = sign;
         display.moves();
     }
@@ -16,27 +18,86 @@ const gameBoard = ( () => {
         const blocks = document.querySelectorAll('.gameboard-block');
         blocks.forEach( block => {
             block.addEventListener('click', () => {
-                if(player1.getIsPlayersTurn() == true){
-                    player1.makeAMove(block.id);
+                if(player1.getIsPlayersTurn() === true){
                     player2.setIsPlayersTurn(true);
+                    player1.setIsPlayersTurn(false);
+                    player1.makeAMove(block.id);
                 }
-                else {
-                    player2.makeAMove(block.id);
+                else if(player2.getIsPlayersTurn() === true){
                     player1.setIsPlayersTurn(true);
+                    player2.setIsPlayersTurn(false);
+                    player2.makeAMove(block.id);
                 }
-            })
+            });
         })
+    }
+
+    const winnerParagraph = document.querySelector('#winner');
+    const checkForWinner = (sign) => {
+
+        if( 
+        //horizontal win
+            gameBoardArr[0] == sign && gameBoardArr[1] == sign && gameBoardArr[2] == sign||
+            gameBoardArr[3] == sign && gameBoardArr[4] == sign && gameBoardArr[5] == sign||
+            gameBoardArr[6] == sign && gameBoardArr[7] == sign && gameBoardArr[8] == sign||
+        //vertical win
+            gameBoardArr[0] == sign && gameBoardArr[3] == sign && gameBoardArr[6] == sign||
+            gameBoardArr[1] == sign && gameBoardArr[4] == sign && gameBoardArr[7] == sign||
+            gameBoardArr[2] == sign && gameBoardArr[5] == sign && gameBoardArr[8] == sign||
+        //diagonal win
+            gameBoardArr[0] == sign && gameBoardArr[4] == sign && gameBoardArr[8] == sign||
+            gameBoardArr[2] == sign && gameBoardArr[4] == sign && gameBoardArr[6] == sign
+        ) {
+            if(sign === 'x') player1Score++;
+            else player2Score++;
+
+            display.score(player1Score, player2Score);
+
+            if(player1Score === 3) {
+                winnerParagraph.innerText = 'winner is X';
+                player1Score = player2Score = 0;
+            }
+            else if(player2Score === 3) {
+                winnerParagraph.innerText = 'winner is O';
+                player1Score = player2Score = 0;
+            }
+
+            player1.setIsPlayersTurn(false);
+            player2.setIsPlayersTurn(false);
+        }
+    }    
+
+    const restart = () => {
+        const restartBtn = document.querySelector('#restart');
+        restartBtn.addEventListener('click', () => {
+            gameBoardArr = [
+                '', '', '', 
+                '', '', '', 
+                '', '', ''
+            ];
+            display.moves(gameBoardArr);
+            if(player1Score === 0 && player2Score === 0 ) {
+                display.score(0, 0);
+                winnerParagraph.innerText = '';
+            }
+            player1.setIsPlayersTurn(true);
+            player2.setIsPlayersTurn(true);
+        });
     }
 
     return {
         getGameBoard,
         updateGameBoard,
         activate,
+        checkForWinner,
+        restart,
     };
 })();
 
-const display = ((movesArr) => {
+gameBoard.restart();
 
+const display = (() => {
+    
     const grid = () => {
         const body = document.querySelector('body');
         const gameboard_div = document.createElement('div');
@@ -60,7 +121,7 @@ const display = ((movesArr) => {
     }
 
     const moves = () => {
-        for(let i=0; i<movesArr.length; i++)
+        for(let i=0; i<9; i++)
         {
             let row, col;
             if(i <= 2) row = 1;
@@ -72,21 +133,26 @@ const display = ((movesArr) => {
             else col = 3;
         
             const block_div = document.querySelector(`#r${row}c${col}`);
-            block_div.innerText = `${movesArr[i]}`;
+            block_div.innerText = `${gameBoard.getGameBoard()[i]}`;
         }
     }
 
+    const score = (player1Score, player2Score) => {
+        const scoreDiv = document.querySelector('#score');
+        scoreDiv.innerText = ` X | ${player1Score} : ${player2Score} | O`;
+    } 
     return {
         grid,
         moves,
+        score,
     }
-})(gameBoard.getGameBoard());
+})();
 
 display.grid();
-display.moves();
+display.score(0, 0);
 
 const Player = (name, sign) => {
-    let isPlayersTurn = true; //if ture x starts else o starts
+    let isPlayersTurn = true;
 
     const getIsPlayersTurn = () => isPlayersTurn;
     const setIsPlayersTurn = (isTurn) => {isPlayersTurn = isTurn;};
@@ -96,7 +162,7 @@ const Player = (name, sign) => {
         if(gameBoard.getGameBoard()[blockPosInArr] === '')
         {
             gameBoard.updateGameBoard(blockPosInArr, sign);
-            isPlayersTurn = false;
+            gameBoard.checkForWinner(sign);
         }
     }
     return {
