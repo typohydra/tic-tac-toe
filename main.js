@@ -19,14 +19,10 @@ const gameBoard = ( () => {
         blocks.forEach( block => {
             block.addEventListener('click', () => {
                 if(player1.getIsPlayersTurn() === true){
-                    player2.setIsPlayersTurn(true);
-                    player1.setIsPlayersTurn(false);
-                    player1.makeAMove(block.id);
+                    player1.makeAMove(block.id) 
                 }
                 else if(player2.getIsPlayersTurn() === true){
-                    player1.setIsPlayersTurn(true);
-                    player2.setIsPlayersTurn(false);
-                    player2.makeAMove(block.id);
+                    player2.makeAMove(block.id)
                 }
             });
         })
@@ -34,7 +30,6 @@ const gameBoard = ( () => {
 
     const winnerParagraph = document.querySelector('#winner');
     const checkForWinner = (sign) => {
-
         if( 
         //horizontal win
             gameBoardArr[0] == sign && gameBoardArr[1] == sign && gameBoardArr[2] == sign||
@@ -64,6 +59,16 @@ const gameBoard = ( () => {
 
             player1.setIsPlayersTurn(false);
             player2.setIsPlayersTurn(false);
+        }
+        else { // change turns
+            if(sign === 'x') {
+                player2.setIsPlayersTurn(true);
+                player1.setIsPlayersTurn(false);
+            }
+            else {
+                player1.setIsPlayersTurn(true);
+                player2.setIsPlayersTurn(false);
+            }
         }
     }    
 
@@ -99,7 +104,7 @@ gameBoard.restart();
 const display = (() => {
     
     const grid = () => {
-        const body = document.querySelector('body');
+        const containerMain = document.querySelector('#main-container');
         const gameboard_div = document.createElement('div');
         gameboard_div.id = 'gameboard';
 
@@ -116,7 +121,7 @@ const display = (() => {
             }
         }
 
-        body.appendChild(gameboard_div);
+        containerMain.appendChild(gameboard_div);
         gameBoard.activate();
     }
 
@@ -138,9 +143,10 @@ const display = (() => {
     }
 
     const score = (player1Score, player2Score) => {
-        const scoreDiv = document.querySelector('#score');
-        scoreDiv.innerText = ` X | ${player1Score} : ${player2Score} | O`;
-    } 
+        const scoreSpan = document.querySelector('#score');
+        scoreSpan.innerText = `${player1Score} : ${player2Score}`;
+    }
+
     return {
         grid,
         moves,
@@ -163,7 +169,9 @@ const Player = (name, sign) => {
         {
             gameBoard.updateGameBoard(blockPosInArr, sign);
             gameBoard.checkForWinner(sign);
+            return true;
         }
+        return false;
     }
     return {
         name, 
