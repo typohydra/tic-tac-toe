@@ -1,14 +1,37 @@
 const gameBoard = ( () => {
     let gameBoardArr = [
-    'x', 'o', 'x', 
-    'o', 'x', 'o', 
-    'x', 'o', 'x'
+    '', '', '', 
+    '', '', '', 
+    '', '', ''
     ];
 
-    let getGameBoard = () => gameBoardArr;
+    const getGameBoard = () => gameBoardArr;
+
+    let updateGameBoard = (position, sign) => {
+        gameBoardArr[position] = sign;
+        display.moves();
+    }
+
+    const activate  = () => {
+        const blocks = document.querySelectorAll('.gameboard-block');
+        blocks.forEach( block => {
+            block.addEventListener('click', () => {
+                if(player1.getIsPlayersTurn() == true){
+                    player1.makeAMove(block.id);
+                    player2.setIsPlayersTurn(true);
+                }
+                else {
+                    player2.makeAMove(block.id);
+                    player1.setIsPlayersTurn(true);
+                }
+            })
+        })
+    }
 
     return {
         getGameBoard,
+        updateGameBoard,
+        activate,
     };
 })();
 
@@ -33,6 +56,7 @@ const display = ((movesArr) => {
         }
 
         body.appendChild(gameboard_div);
+        gameBoard.activate();
     }
 
     const moves = () => {
@@ -60,3 +84,29 @@ const display = ((movesArr) => {
 
 display.grid();
 display.moves();
+
+const Player = (name, sign) => {
+    let isPlayersTurn = true; //if ture x starts else o starts
+
+    const getIsPlayersTurn = () => isPlayersTurn;
+    const setIsPlayersTurn = (isTurn) => {isPlayersTurn = isTurn;};
+
+    const makeAMove = (clickedBlockId) => {
+        let blockPosInArr = (clickedBlockId[1]-1)*3 + (clickedBlockId[3]-1);
+        if(gameBoard.getGameBoard()[blockPosInArr] === '')
+        {
+            gameBoard.updateGameBoard(blockPosInArr, sign);
+            isPlayersTurn = false;
+        }
+    }
+    return {
+        name, 
+        sign, 
+        makeAMove,
+        getIsPlayersTurn,
+        setIsPlayersTurn,
+    };
+}
+
+const player1 = Player('player1', 'x');
+const player2 = Player('player2', 'o');
